@@ -20,11 +20,6 @@ from oauth2_provider.ext.rest_framework import TokenHasReadWriteScope, TokenHasS
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
 
 
-class UserList(generics.ListAPIView, generics.CreateAPIView):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-
-
 class UserSignup(APIView):
     """
     Signup new user
@@ -50,15 +45,12 @@ class UserAccount(APIView):
     """
     authentication_classes = (BasicAuthentication,)
     permission_classes = (IsAuthenticated,)
-    
 
-    def put(self, request, format=None):
+
+    def delete(self, request, format=None):
         user = User.objects.get(id=request.user.id)
-        serializer = UserSerializer(user, data=request.DATA)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        user.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 
@@ -71,7 +63,7 @@ class UserProfile(APIView):
 
 
     def get(self, request, format=None):
-        profile = Profile.objects.get(user=request.user.id)
+        profile = get_object_or_404(Profile, user=request.user.id)
         serializer = ProfileSerializer(profile)
         return Response(serializer.data)
 
@@ -124,7 +116,7 @@ class UserCheckpointsPagination(APIView):
     def get(self, request, offset, limit, format=None):
         offset = int(offset)
         limit = int(limit)
-        checkpoint = CheckPoint.objects.filter(is_planned=True, user=request.user.id)[offset: limit]
+        checkpoint = CheckPoint.objects.filter(is_planned=False, user=request.user.id)[offset: limit]
         serializer = CheckPointSerializer(checkpoint, many=True)
         return Response(serializer.data)
 

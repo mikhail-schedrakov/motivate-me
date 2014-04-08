@@ -7,7 +7,7 @@ class Profile(models.Model):
     gender = models.CharField(max_length=10)
     initial_weight = models.FloatField()
     height = models.FloatField()
-    registration_date = models.DateField(auto_now_add=True)
+    # registration_date = models.DateField(auto_now_add=True)
     # Relations
     user = models.OneToOneField(User, related_name='profile')
 
