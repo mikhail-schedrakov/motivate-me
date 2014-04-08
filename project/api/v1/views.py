@@ -17,7 +17,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework.authentication import BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
 from oauth2_provider.ext.rest_framework import TokenHasReadWriteScope, TokenHasScope
-from django.views.decorators.csrf import csrf_exempt, csrf_protect
+from django.core.mail import send_mail
 
 
 class UserSignup(APIView):
@@ -139,6 +139,8 @@ class UserMentor(APIView):
 
 
     def get(self, request, format=None):
+        # send_mail('Subject here', 'Here is the message.', 'mikhail.schedrakov@gmail.com',['mikhail.schedrakov@gmail.com'], fail_silently=False)
+
         mentors = Mentor.objects.filter(user=request.user.id)
         serializer = MentorSerializer(mentors, many=True)
         return Response(serializer.data)
