@@ -3,21 +3,23 @@ from api.models import Profile, CheckPoint, Mentor
 from django.contrib.auth.models import User
 
 from api.v1.serializers import UserSerializer
+from api.v1.serializers import CreateUserSerializer
 from api.v1.serializers import UserSignupSerializer
 from api.v1.serializers import ProfileSerializer
 from api.v1.serializers import CheckPointSerializer
 from api.v1.serializers import MentorSerializer
 
-from rest_framework import generics
 from rest_framework import status
+from rest_framework import generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
+from rest_framework.renderers import JSONRenderer
 
-from rest_framework.authentication import BasicAuthentication
-from rest_framework.permissions import IsAuthenticated
-from oauth2_provider.ext.rest_framework import TokenHasReadWriteScope, TokenHasScope
 from django.core.mail import send_mail
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.authentication import BasicAuthentication
+from oauth2_provider.ext.rest_framework import TokenHasReadWriteScope, TokenHasScope
 
 
 class UserSignup(APIView):
@@ -25,18 +27,13 @@ class UserSignup(APIView):
     Signup new user
     """
     def post(self, request, format=None):
-        serializer = UserSignupSerializer(data=request.DATA)
+        serializer = CreateUserSerializer(data=request.DATA)
         if serializer.is_valid():
-            user = User.objects.create_user(
-                serializer.init_data['email'],
-                serializer.init_data['email'],
-                serializer.init_data['password']
-            )
-            user.save()
-            serialized_user = UserSignupSerializer(user)
-            return Response(serialized_user.data, status=status.HTTP_201_CREATED)
+            serializer.save()
+            user = User.objects.latest('id')
+            serializer = UserSerializer(user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 
 class UserAccount(APIView):
