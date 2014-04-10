@@ -38,16 +38,39 @@ class UserSignup(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class CreateProfile(mixins.CreateModelMixin, generics.GenericAPIView):
+class ProfileDetail(mixins.CreateModelMixin, APIView):
     authentication_classes = (BasicAuthentication,)
     permission_classes = (IsAuthenticated,)
     serializer_class = ProfileSerializer
 
+    def pre_save(self, obj):
+        obj.user = self.request.user
+
     def post(self, request, *args, **kwargs):
         return self.create(request, *args, **kwargs)
 
-    def pre_save(self, obj):
-        obj.user = self.request.user
+    def get(self, request, format=None):
+        profile = get_object_or_404(Profile, user=request.user.id)
+        serializer = ProfileSerializer(profile)
+        return Response(serializer.data)
+
+    def put(self, request, format=None):
+        profile = Profile.objects.get(user=request.user.id)
+        serializer = ProfileSerializer(profile, data=request.DATA)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    
+# class RetrieveUpdateProfile(generics.RetrieveAPIView):
+#     authentication_classes = (BasicAuthentication,)
+#     permission_classes = (IsAuthenticated,)
+#     serializer_class = ProfileSerializer
+#     queryset = Profile.objects.all()
+
+#     def get(self, request, *args, **kwargs):
+#         return self.retrieve(request, *args, **kwargs) 
 
 
 
@@ -65,12 +88,13 @@ class UserProfile(APIView):
         return Response(serializer.data)
 
         
-    def post(self, request, format=None):
-        serializer = ProfileSerializer(data=request.DATA)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    # def post(self, request, format=None):
+    #     serializer = ProfileSerializer(data=request.DATA)
+    #     serializer.objects.user = request.user
+    #     if serializer.is_valid():
+    #         serializer.save()
+    #         return Response(serializer.data, status=status.HTTP_201_CREATED)
+    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
     def put(self, request, format=None):

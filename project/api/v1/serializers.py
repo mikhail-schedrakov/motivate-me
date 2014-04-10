@@ -17,8 +17,6 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class ProfileSerializer(serializers.ModelSerializer):
-    # user = serializers.PrimaryKeyRelatedField()
-
     class Meta:
         model = Profile
         fields = (
@@ -26,18 +24,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             'gender',
             'initial_weight',
             'height',
-        )
-
-    def restore_object(self, attrs, instance=None):
-        # import pdb; pdb.set_trace()
-        profile = Profile(
-            age=attrs['age'], 
-            gender=attrs['gender'],
-            initial_weight=attrs['initial_weight'],
-            height=attrs['height'],
-        )
-        return profile    
-
+        )  
 
 
 class CheckPointSerializer(serializers.ModelSerializer):
