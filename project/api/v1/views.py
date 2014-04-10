@@ -10,6 +10,7 @@ from api.v1.serializers import CheckPointSerializer
 from api.v1.serializers import MentorSerializer
 
 from rest_framework import status
+from rest_framework import mixins
 from rest_framework import generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -28,6 +29,7 @@ class UserSignup(APIView):
     """
     def post(self, request, format=None):
         serializer = CreateUserSerializer(data=request.DATA)
+        # import pdb; pdb.set_trace()
         if serializer.is_valid():
             serializer.save()
             user = User.objects.latest('id')
@@ -36,18 +38,16 @@ class UserSignup(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class UserAccount(APIView):
-    """
-    User accaunt
-    """
+class CreateProfile(mixins.CreateModelMixin, generics.GenericAPIView):
     authentication_classes = (BasicAuthentication,)
     permission_classes = (IsAuthenticated,)
+    serializer_class = ProfileSerializer
 
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
 
-    def delete(self, request, format=None):
-        user = User.objects.get(id=request.user.id)
-        user.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+    def pre_save(self, obj):
+        obj.user = self.request.user
 
 
 
@@ -82,7 +82,6 @@ class UserProfile(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-
 class UserCheckpoints(APIView):
 	"""
 	CR - user checpoints
@@ -103,7 +102,6 @@ class UserCheckpoints(APIView):
 		checkpoint = CheckPoint.objects.filter(is_planned=True, user=request.user.id)
 		serializer = CheckPointSerializer(checkpoint, many=True)
 		return Response(serializer.data)
-
 
 
 class UserCheckpointsPagination(APIView):
