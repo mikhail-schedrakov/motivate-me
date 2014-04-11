@@ -9,11 +9,56 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = (
             'id',
-            'username',
             'email',
             'is_active',
             'date_joined'
         )
+
+
+class SignupUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = (
+            'email',
+            'password',
+        )
+        write_only_fields = (
+            'password',
+            'email',
+        )
+
+    def restore_object(self, attrs, instance=None):
+        """
+        Create new user instance
+        """
+        user = User(
+            email=attrs['email'], 
+            username=attrs['email'],
+            is_active = False,
+        )
+        user.set_password(attrs['password'])
+        return user
+
+
+class CreateProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = (
+            'age',
+            'gender',
+            'initial_weight',
+            'height',
+        )
+
+    def restore_object(self, attrs, instance=None):
+        profiel = Profile(
+            age=attrs['age'], 
+            gender=attrs['gender'],
+            initial_weight = attrs['initial_weight'],
+            height = attrs['height'],
+            user = self.context['request'].user
+        )
+        return profiel
 
 
 class ProfileSerializer(serializers.ModelSerializer):
@@ -35,9 +80,6 @@ class CheckPointSerializer(serializers.ModelSerializer):
                   'is_planned')
 
     def restore_object(self, attrs, instance=None):
-        """
-        Create new user instance
-        """
         checkpoint = CheckPoint(
             date=attrs['date'], 
             weight=attrs['weight'],
@@ -47,41 +89,8 @@ class CheckPointSerializer(serializers.ModelSerializer):
         return checkpoint
 
 
-class UserSignupSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        depth = 1
-        fields = ('id',)
-
-
 class MentorSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField()
 
     class Meta:
         model = Mentor
-
-
-class CreateUserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = (
-            'email',
-            'password',
-        )
-        write_only_fields = (
-            'password',
-            'email',
-        )
-
-
-    def restore_object(self, attrs, instance=None):
-        """
-        Create new user instance
-        """
-        user = User(
-            email=attrs['email'], 
-            username=attrs['email'],
-            is_active = False,
-        )
-        user.set_password(attrs['password'])
-        return user
