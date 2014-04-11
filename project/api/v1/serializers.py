@@ -24,7 +24,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             'gender',
             'initial_weight',
             'height',
-        )  
+        )
 
 
 class CheckPointSerializer(serializers.ModelSerializer):
@@ -32,8 +32,19 @@ class CheckPointSerializer(serializers.ModelSerializer):
         model = CheckPoint
         fields = ('date',
                   'weight', 
-                  'is_planned', 
-                  'user')
+                  'is_planned')
+
+    def restore_object(self, attrs, instance=None):
+        """
+        Create new user instance
+        """
+        checkpoint = CheckPoint(
+            date=attrs['date'], 
+            weight=attrs['weight'],
+            is_planned = attrs['is_planned'],
+            user = self.context['request'].user
+        )
+        return checkpoint
 
 
 class UserSignupSerializer(serializers.ModelSerializer):

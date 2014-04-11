@@ -62,17 +62,6 @@ class ProfileDetail(mixins.CreateModelMixin, APIView):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    
-# class RetrieveUpdateProfile(generics.RetrieveAPIView):
-#     authentication_classes = (BasicAuthentication,)
-#     permission_classes = (IsAuthenticated,)
-#     serializer_class = ProfileSerializer
-#     queryset = Profile.objects.all()
-
-#     def get(self, request, *args, **kwargs):
-#         return self.retrieve(request, *args, **kwargs) 
-
-
 
 class UserProfile(APIView):
     """
@@ -81,21 +70,11 @@ class UserProfile(APIView):
     authentication_classes = (BasicAuthentication,)
     permission_classes = (IsAuthenticated,)
 
-
     def get(self, request, format=None):
         profile = get_object_or_404(Profile, user=request.user.id)
         serializer = ProfileSerializer(profile)
         return Response(serializer.data)
-
-        
-    # def post(self, request, format=None):
-    #     serializer = ProfileSerializer(data=request.DATA)
-    #     serializer.objects.user = request.user
-    #     if serializer.is_valid():
-    #         serializer.save()
-    #         return Response(serializer.data, status=status.HTTP_201_CREATED)
-    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+            
 
     def put(self, request, format=None):
         profile = Profile.objects.get(user=request.user.id)
@@ -106,26 +85,45 @@ class UserProfile(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+class CheckpointList(mixins.CreateModelMixin, 
+                     mixins.RetrieveModelMixin, 
+                     generics.GenericAPIView):
+    """
+    List checpoints
+    """
+    authentication_classes = (BasicAuthentication,)
+    permission_classes = (IsAuthenticated,)
+    serializer_class = CheckPointSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        return CheckPoint.objects.filter(user=user)
+
+    def pre_save(self, obj):
+        obj.user = self.request.user
+
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)        
+
+
 class UserCheckpoints(APIView):
-	"""
-	CR - user checpoints
-	"""
-	authentication_classes = (BasicAuthentication,)
-	permission_classes = (IsAuthenticated,)
-    
+    """
+    CR - user checpoints
+    """
+    authentication_classes = (BasicAuthentication,)
+    permission_classes = (IsAuthenticated,)
 
-	def post(self, request, format=None):
-		serializer = CheckPointSerializer(data=request.DATA)
-		if serializer.is_valid():
-			serializer.save()
-			return Response(serializer.data, status=status.HTTP_201_CREATED)
-		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def post(self, request, format=None):
+        serializer = CheckPointSerializer(data=request.DATA, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
-	def get(self, request, format=None):
-		checkpoint = CheckPoint.objects.filter(is_planned=True, user=request.user.id)
-		serializer = CheckPointSerializer(checkpoint, many=True)
-		return Response(serializer.data)
+    def get(self, request, format=None):
+        checkpoint = CheckPoint.objects.filter(is_planned=False, user=request.user.id)
+        serializer = CheckPointSerializer(checkpoint, many=True)
+        return Response(serializer.data)
 
 
 class UserCheckpointsPagination(APIView):
@@ -138,7 +136,6 @@ class UserCheckpointsPagination(APIView):
         checkpoint = CheckPoint.objects.filter(is_planned=False, user=request.user.id)[offset: limit]
         serializer = CheckPointSerializer(checkpoint, many=True)
         return Response(serializer.data)
-
 
 
 class UserMentor(APIView):
