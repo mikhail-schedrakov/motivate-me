@@ -32,8 +32,8 @@ class SignupUserSerializer(serializers.ModelSerializer):
         Create new user instance
         """
         user = User(
-            email=attrs['email'], 
-            username=attrs['email'],
+            email = attrs['email'], 
+            username = attrs['email'],
             is_active = False,
         )
         user.set_password(attrs['password'])
@@ -52,8 +52,8 @@ class CreateProfileSerializer(serializers.ModelSerializer):
 
     def restore_object(self, attrs, instance=None):
         profiel = Profile(
-            age=attrs['age'], 
-            gender=attrs['gender'],
+            age = attrs['age'], 
+            gender = attrs['gender'],
             initial_weight = attrs['initial_weight'],
             height = attrs['height'],
             user = self.context['request'].user
@@ -75,7 +75,8 @@ class ProfileSerializer(serializers.ModelSerializer):
 class CheckPointSerializer(serializers.ModelSerializer):
     class Meta:
         model = CheckPoint
-        fields = ('date',
+        fields = ('id',
+                  'date',
                   'weight', 
                   'is_planned')
 
@@ -90,7 +91,16 @@ class CheckPointSerializer(serializers.ModelSerializer):
 
 
 class MentorSerializer(serializers.ModelSerializer):
-    user = serializers.PrimaryKeyRelatedField()
-
     class Meta:
         model = Mentor
+        fields = (
+            'id',
+            'email',
+        )
+
+    def restore_object(self, attrs, instance=None):
+        mentor = Mentor(
+            email = attrs['email'],
+            user = self.context['request'].user
+        )
+        return mentor

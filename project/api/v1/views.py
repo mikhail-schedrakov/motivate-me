@@ -20,120 +20,122 @@ from rest_framework.renderers import JSONRenderer
 from django.core.mail import send_mail
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import BasicAuthentication
-from oauth2_provider.ext.rest_framework import TokenHasReadWriteScope, TokenHasScope
 
 
 class UserSignup(APIView):
-	"""
-	Signup new user
-	"""
-	def post(self, request, format=None):
-		serializer = SignupUserSerializer(data=request.DATA)
-		if serializer.is_valid():
-			serializer.save()
-			user = User.objects.latest('id')
-			serializer = UserSerializer(user)
-			return Response(serializer.data, status=status.HTTP_201_CREATED)
-		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    """
+    Signup new user
+    """
+    def post(self, request, format=None):
+        serializer = SignupUserSerializer(data=request.DATA)
+        if serializer.is_valid():
+            serializer.save()
+            user = User.objects.latest('id')
+            serializer = UserSerializer(user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
+class UserDetail(APIView):
+    """
+    Delete user
+    """
+    authentication_classes = (BasicAuthentication,)
+    permission_classes = (IsAuthenticated,)
+
+    def delete(self, request, format=None):
+        user = User.objects.get(id=request.user.id)
+        user.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+        
 
 class ProfileDetail(APIView):
-	authentication_classes = (BasicAuthentication,)
-	permission_classes = (IsAuthenticated,)
+    authentication_classes = (BasicAuthentication,)
+    permission_classes = (IsAuthenticated,)
 
-	def post(self, request, format=None):
-		serializer = CreateProfileSerializer(data=request.DATA, context={'request': request})
-		if serializer.is_valid():
-			serializer.save()
-			return Response(serializer.data, status=status.HTTP_201_CREATED)
-		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def post(self, request, format=None):
+        serializer = CreateProfileSerializer(data=request.DATA, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-	def get(self, request, format=None):
-		profile = get_object_or_404(Profile, user=request.user.id)
-		serializer = ProfileSerializer(profile)
-		return Response(serializer.data)
+    def get(self, request, format=None):
+        profile = get_object_or_404(Profile, user=request.user.id)
+        serializer = ProfileSerializer(profile)
+        return Response(serializer.data)
 
-	def put(self, request, format=None):
-		profile = Profile.objects.get(user=request.user.id)
-		serializer = ProfileSerializer(profile, data=request.DATA)
-		if serializer.is_valid():
-			serializer.save()
-			return Response(serializer.data)
-		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-class CheckpointList(mixins.CreateModelMixin, 
-					 mixins.RetrieveModelMixin, 
-					 generics.GenericAPIView):
-	"""
-	List checpoints
-	"""
-	authentication_classes = (BasicAuthentication,)
-	permission_classes = (IsAuthenticated,)
-	serializer_class = CheckPointSerializer
-
-	def get_queryset(self):
-		user = self.request.user
-		return CheckPoint.objects.filter(user=user)
-
-	def pre_save(self, obj):
-		obj.user = self.request.user
-
-	def post(self, request, *args, **kwargs):
-		return self.create(request, *args, **kwargs)        
+    def put(self, request, format=None):
+        profile = Profile.objects.get(user=request.user.id)
+        serializer = ProfileSerializer(profile, data=request.DATA)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class UserCheckpoints(APIView):
-	"""
-	CR - user checpoints
-	"""
-	authentication_classes = (BasicAuthentication,)
-	permission_classes = (IsAuthenticated,)
+class CheckpointsList(APIView):
+    """
+    CR: User checpoints
+    """
+    authentication_classes = (BasicAuthentication,)
+    permission_classes = (IsAuthenticated,)
 
-	def post(self, request, format=None):
-		serializer = CheckPointSerializer(data=request.DATA, context={'request': request})
-		if serializer.is_valid():
-			serializer.save()
-			return Response(serializer.data, status=status.HTTP_201_CREATED)
-		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def post(self, request, format=None):
+        serializer = CheckPointSerializer(data=request.DATA, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-	def get(self, request, format=None):
-		checkpoint = CheckPoint.objects.filter(is_planned=False, user=request.user.id)
-		serializer = CheckPointSerializer(checkpoint, many=True)
-		return Response(serializer.data)
+    def get(self, request, format=None):
+        checkpoint = CheckPoint.objects.filter(is_planned=True, user=request.user.id)
+        serializer = CheckPointSerializer(checkpoint, many=True)
+        return Response(serializer.data)
+
+
+class NotPlannedCheckpointsList(APIView):
+    """
+    CR: User checpoints
+    """
+    authentication_classes = (BasicAuthentication,)
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, id, format=None):
+        checkpoint = CheckPoint.objects.filter(is_planned=False, id__gte=id )[:30]
+        serializer = CheckPointSerializer(checkpoint, many=True)
+        return Response(serializer.data)
 
 
 class UserCheckpointsPagination(APIView):
-	authentication_classes = (BasicAuthentication,)
-	permission_classes = (IsAuthenticated,)
+    authentication_classes = (BasicAuthentication,)
+    permission_classes = (IsAuthenticated,)
 
-	def get(self, request, offset, limit, format=None):
-		offset = int(offset)
-		limit = int(limit)
-		checkpoint = CheckPoint.objects.filter(is_planned=False, user=request.user.id)[offset: limit]
-		serializer = CheckPointSerializer(checkpoint, many=True)
-		return Response(serializer.data)
-
-
-class UserMentor(APIView):
-	"""
-	CR - user mentors
-	"""
-	authentication_classes = (BasicAuthentication,)
-	permission_classes = (IsAuthenticated,)
+    def get(self, request, offset, limit, format=None):
+        offset = int(offset)
+        limit = int(limit)
+        checkpoint = CheckPoint.objects.filter(is_planned=False, user=request.user.id)[offset: limit]
+        serializer = CheckPointSerializer(checkpoint, many=True)
+        return Response(serializer.data)
 
 
-	def post(self, request, format=None):
-		serializer = MentorSerializer(data=request.DATA)
-		if serializer.is_valid():
-			serializer.save()
-			return Response(serializer.data, status=status.HTTP_201_CREATED)
-		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+class MentorList(APIView):
+    """
+    CR - user mentors
+    """
+    authentication_classes = (BasicAuthentication,)
+    permission_classes = (IsAuthenticated,)
 
+    def post(self, request, format=None):
+        serializer = MentorSerializer(data=request.DATA, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-	def get(self, request, format=None):
-		# send_mail('Subject here', 'Here is the message.', 'mikhail.schedrakov@gmail.com',['mikhail.schedrakov@gmail.com'], fail_silently=False)
-
-		mentors = Mentor.objects.filter(user=request.user.id)
-		serializer = MentorSerializer(mentors, many=True)
-		return Response(serializer.data)
+    def get(self, request, format=None):
+        # send_mail('Subject here', 'Here is the message.', 
+        # 'mikhail.schedrakov@gmail.com',['mikhail.schedrakov@gmail.com'], fail_silently=False)
+        mentors = Mentor.objects.filter(user=request.user.id)[0:100]
+        serializer = MentorSerializer(mentors, many=True)
+        return Response(serializer.data)
