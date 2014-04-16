@@ -26,6 +26,8 @@ TEMPLATE_DEBUG = True
 
 ALLOWED_HOSTS = []
 
+AUTH_USER_MODEL = 'api.CustomUser'
+
 # Application definition
 
 INSTALLED_APPS = (
