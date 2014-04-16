@@ -1,23 +1,22 @@
 from django.forms import widgets
 from rest_framework import serializers
-from api.models import Profile, CheckPoint, Mentor
-from django.contrib.auth.models import User
+from api.models import Profile, CheckPoint, Mentor, CustomUser
+from django.contrib.auth import get_user_model
 
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
-        model = User
+        model = get_user_model()
         fields = (
             'id',
             'email',
             'is_active',
-            'date_joined'
         )
 
 
 class SignupUserSerializer(serializers.ModelSerializer):
     class Meta:
-        model = User
+        model = get_user_model()
         fields = (
             'email',
             'password',
@@ -31,9 +30,8 @@ class SignupUserSerializer(serializers.ModelSerializer):
         """
         Create new user instance
         """
-        user = User(
+        user = get_user_model()(
             email = attrs['email'], 
-            username = attrs['email'],
             is_active = False,
         )
         user.set_password(attrs['password'])

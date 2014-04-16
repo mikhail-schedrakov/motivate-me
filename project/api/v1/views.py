@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from api.models import Profile, CheckPoint, Mentor
+from api.models import Profile, CheckPoint, Mentor, CustomUser
 from django.contrib.auth.models import User
 
 from api.v1.serializers import UserSerializer
@@ -30,7 +30,7 @@ class UserSignup(APIView):
         serializer = SignupUserSerializer(data=request.DATA)
         if serializer.is_valid():
             serializer.save()
-            user = User.objects.latest('id')
+            user = CustomUser.objects.latest('id')
             serializer = UserSerializer(user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
