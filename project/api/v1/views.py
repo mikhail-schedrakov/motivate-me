@@ -32,6 +32,15 @@ class UserSignup(APIView):
             serializer.save()
             user = CustomUser.objects.latest('id')
             serializer = UserSerializer(user)
+
+            send_mail(
+                'Subject here',
+                'This is the test message.',
+                'mikhail.schedrakov@gmail.com',
+                ['mikhail.schedrakov@gmail.com'],
+                fail_silently=False
+            )
+
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -134,8 +143,6 @@ class MentorList(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def get(self, request, format=None):
-        # send_mail('Subject here', 'Here is the message.', 
-        # 'mikhail.schedrakov@gmail.com',['mikhail.schedrakov@gmail.com'], fail_silently=False)
         mentors = Mentor.objects.filter(user=request.user.id)[0:100]
         serializer = MentorSerializer(mentors, many=True)
         return Response(serializer.data)
