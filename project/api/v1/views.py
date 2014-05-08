@@ -123,7 +123,7 @@ class UserCheckpointsPagination(APIView):
     def get(self, request, offset, limit, format=None):
         offset = int(offset)
         limit = int(limit)
-        checkpoint = CheckPoint.objects.filter(is_planned=False, user=request.user.id)[offset: limit]
+        checkpoint = CheckPoint.objects.filter(is_planned=False, user=request.user.id)[offset:offset + limit]
         serializer = CheckPointSerializer(checkpoint, many=True)
         return Response(serializer.data)
 

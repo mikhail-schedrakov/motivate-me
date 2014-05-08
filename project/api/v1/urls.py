@@ -7,9 +7,9 @@ urlpatterns = patterns('',
     url(r'^signup/$', views.UserSignup.as_view()),
     url(r'^me/$', views.UserDetail.as_view()),
     url(r'^me/profile/$', views.ProfileDetail.as_view()),
-    url(r'^me/checpoints/$', views.CheckpointsList.as_view()),
-    url(r'^me/checpoints/(?P<offset>[0-9]+)/(?P<limit>[0-9]+)/$', views.UserCheckpointsPagination.as_view()),
-    url(r'^me/checpoints/(?P<id>[0-9]+)/$', views.NotPlannedCheckpointsList.as_view()),
+    url(r'^me/checkpoints/$', views.CheckpointsList.as_view()),
+    url(r'^me/checkpoints/(?P<offset>[0-9]+)/(?P<limit>[0-9]+)/$', views.UserCheckpointsPagination.as_view()),
+    url(r'^me/checkpoints/(?P<id>[0-9]+)/$', views.NotPlannedCheckpointsList.as_view()),
     url(r'^me/mentors/$', views.MentorList.as_view()),
 )
 

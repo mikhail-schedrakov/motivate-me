@@ -33,7 +33,7 @@ class SignupUserSerializer(serializers.ModelSerializer):
         """
         user = get_user_model()(
             email = attrs['email'], 
-            is_active = False,
+            is_active = True,
         )
         user.set_password(attrs['password'])
         return user
