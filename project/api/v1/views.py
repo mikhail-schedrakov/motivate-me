@@ -98,7 +98,7 @@ class CheckpointsList(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def get(self, request, format=None):
-        checkpoint = CheckPoint.objects.filter(is_planned=True, user=request.user.id)
+        checkpoint = CheckPoint.objects.filter(user=request.user.id)
         serializer = CheckPointSerializer(checkpoint, many=True)
         return Response(serializer.data)
 
@@ -111,7 +111,7 @@ class NotPlannedCheckpointsList(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request, id, format=None):
-        checkpoint = CheckPoint.objects.filter(is_planned=False, id__gte=id )[:30]
+        checkpoint = CheckPoint.objects.filter(id__gte=id )[:30]
         serializer = CheckPointSerializer(checkpoint, many=True)
         return Response(serializer.data)
 
@@ -123,7 +123,7 @@ class UserCheckpointsPagination(APIView):
     def get(self, request, offset, limit, format=None):
         offset = int(offset)
         limit = int(limit)
-        checkpoint = CheckPoint.objects.filter(is_planned=False, user=request.user.id)[offset:offset + limit]
+        checkpoint = CheckPoint.objects.filter(user=request.user.id)[offset:offset + limit]
         serializer = CheckPointSerializer(checkpoint, many=True)
         return Response(serializer.data)
 
