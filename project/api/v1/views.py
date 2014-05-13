@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 
 from api.v1.serializers import UserSerializer
 from api.v1.serializers import SignupUserSerializer
+from api.v1.serializers import UserDetailSerializer
 from api.v1.serializers import CreateProfileSerializer
 from api.v1.serializers import ProfileSerializer
 from api.v1.serializers import CheckPointSerializer
@@ -56,7 +57,12 @@ class UserDetail(APIView):
         user = User.objects.get(id=request.user.id)
         user.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-        
+
+    def get(self, request, format=None):
+        userData = get_object_or_404(CustomUser, id=request.user.id) 
+        serializer = UserDetailSerializer(userData)
+        return Response(serializer.data)
+
 
 class ProfileDetail(APIView):
     authentication_classes = (BasicAuthentication,)

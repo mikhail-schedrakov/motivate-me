@@ -71,6 +71,20 @@ class ProfileSerializer(serializers.ModelSerializer):
         )
 
 
+class UserDetailSerializer(serializers.ModelSerializer):
+    profile = ProfileSerializer()
+
+    class Meta:
+        model = get_user_model()
+        fields = (
+            'id',
+            'email',
+            'is_active',
+            'create_date',
+            'profile',
+        )
+
+
 class CheckPointSerializer(serializers.ModelSerializer):
     class Meta:
         model = CheckPoint
