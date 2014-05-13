@@ -109,6 +109,18 @@ class CheckpointsList(APIView):
         return Response(serializer.data)
 
 
+class CheckpointDetail(APIView):
+    """
+    Update current checkpoint
+    """
+    authentication_classes = (BasicAuthentication,)
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, date, format=None):
+        return Response('string')
+
+
+
 class NotPlannedCheckpointsList(APIView):
     """
     CR: User checpoints
@@ -117,7 +129,7 @@ class NotPlannedCheckpointsList(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request, id, format=None):
-        checkpoint = CheckPoint.objects.filter(id__gte=id )[:30]
+        checkpoint = CheckPoint.objects.filter(user=request.user.id, id__gte=id )[:30]
         serializer = CheckPointSerializer(checkpoint, many=True)
         return Response(serializer.data)
 
